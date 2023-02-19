@@ -2,11 +2,15 @@ const express = require('express')
 const path = require('path') // we have access to path through node and need this line to set an absolute path for some of our folders like views
 const mongoose = require('mongoose')
 const Campground = require('./models/campground')
+const Review = require('./models/review')
 const methodOverride = require('method-override')
 const ejsMate = require('ejs-mate')
 const catchAsync = require('./utilities/catchAsync')
 const ExpressError = require('./utilities/ExpressError')
-const {campgroundSchema} = require('./schemas.js');
+const {campgroundSchema, reviewSchema} = require('./schemas.js')
+const { assert } = require('console')
+const review = require('./models/review')
+const campground = require('./models/campground')
 
 mongoose.set('strictQuery', true)
 mongoose.connect('mongodb://127.0.0.1:27017/yelp-camp')
@@ -39,6 +43,17 @@ const validateCampground = (req, res, next) => {
   }
 }
 
+const validateReview = (req, res, next) => {
+  const {error} = reviewSchema.validate(req.body);
+  if(error) {
+    const msg = error.details.map(el => el.message).join(',');
+    throw new ExpressError(msg, 400);
+  }
+  else{
+    next();
+  }
+}
+
 app.get('/campgrounds', catchAsync(async (req, res) => {
   const campgrounds = await Campground.find({})
   res.render('campgrounds/index', { campgrounds })
@@ -55,7 +70,7 @@ app.post('/campgrounds', validateCampground, catchAsync(async (req, res, next) =
   }))
 
 app.get('/campgrounds/:id', catchAsync(async (req, res) => {
-  const campground = await Campground.findById(req.params.id)
+  const campground = await Campground.findById(req.params.id).populate('reviews');
   res.render('campgrounds/show', { campground })
 }))
 
@@ -74,6 +89,21 @@ app.put('/campgrounds/:id', validateCampground, catchAsync(async (req, res) => {
 app.delete('/campgrounds/:id', catchAsync(async (req, res) => {
   await Campground.findByIdAndDelete(req.params.id)
   res.redirect('/campgrounds')
+}))
+
+app.post('/campgrounds/:id/reviews', validateReview, catchAsync(async(req,res) => {
+   const campground = await Campground.findById(req.params.id);
+   const review = new Review(req.body.review);
+   campground.reviews.push(review);
+  await review.save();
+  await campground.save();
+  res.redirect(`/campgrounds/${campground._id}`);
+}))
+
+app.delete('/campgrounds/:id/reviews/:reviewId', catchAsync(async(req, res) => {
+  await Campground.findByIdAndUpdate(req.params.id, {$pull: {reviews: req.params.reviewId}});
+  await Review.findByIdAndDelete(req.params.reviewId);
+  res.redirect(`/campgrounds/${req.params.id}`);
 }))
 
 app.all('/*', (req, res, next) => {
