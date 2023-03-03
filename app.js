@@ -1,3 +1,7 @@
+if(process.env.NODE_ENV !== "production") {
+  require('dotenv').config();
+}
+
 const express = require('express');
 const path = require('path'); // we have access to path through node and need this line to set an absolute path for some of our folders like views
 const mongoose = require('mongoose')
