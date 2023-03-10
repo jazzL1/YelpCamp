@@ -22,8 +22,13 @@ const campgroundRoutes = require('./routes/campgrounds');
 const reviewRoutes = require('./routes/reviews');
 const userRoutes = require('./routes/users');
 
-mongoose.set('strictQuery', true)
-mongoose.connect('mongodb://127.0.0.1:27017/yelp-camp')
+const MongoDbStore = require('connect-mongo');
+
+//const dbUrl = process.env.DB_URL;
+mongoose.set('strictQuery', true);
+mongoose.connect('mongodb://127.0.0.1:27017/yelp-camp');
+//mongoose.connect(dbUrl);
+
 const db = mongoose.connection
 db.on('error', console.error.bind(console, 'connection error:'))
 db.once('open', () => {
@@ -56,6 +61,15 @@ const sessionConfig = {
     maxAge: 1000 *60 *60 *24 *7
   }
 }
+
+const store = MongoDbStore.create({
+  mongoUrl: 'mongodb://127.0.0.1:27017/yelp-camp',
+  touchAfter: 24 * 60 * 60,
+  crypto: {
+      secret: 'squirrel'
+  }
+});
+
 app.use(session(sessionConfig));
 app.use(flash());
 app.use(passport.initialize());
