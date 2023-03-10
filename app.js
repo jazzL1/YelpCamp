@@ -24,10 +24,10 @@ const userRoutes = require('./routes/users');
 
 const MongoDbStore = require('connect-mongo');
 
-//const dbUrl = process.env.DB_URL;
+const dbUrl = process.env.DB_URL || 'mongodb://127.0.0.1:27017/yelp-camp';
 mongoose.set('strictQuery', true);
-mongoose.connect('mongodb://127.0.0.1:27017/yelp-camp');
-//mongoose.connect(dbUrl);
+//mongoose.connect('mongodb://127.0.0.1:27017/yelp-camp');
+mongoose.connect(dbUrl);
 
 const db = mongoose.connection
 db.on('error', console.error.bind(console, 'connection error:'))
@@ -49,9 +49,11 @@ app.use(mongoSanitize({
   replaceWith: '_'
 }));
 
+const secret = process.env.SECRET || 'squirel';
+
 const sessionConfig = {
   name: 'session',
-  secret: 'thisIsASecret',
+  secret,
   resave: false,
   saveUninitialized: true,
   cookie: {
@@ -62,11 +64,13 @@ const sessionConfig = {
   }
 }
 
+
+
 const store = MongoDbStore.create({
-  mongoUrl: 'mongodb://127.0.0.1:27017/yelp-camp',
+  mongoUrl: dbUrl,
   touchAfter: 24 * 60 * 60,
   crypto: {
-      secret: 'squirrel'
+      secret
   }
 });
 
