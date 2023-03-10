@@ -2,6 +2,8 @@ if(process.env.NODE_ENV !== "production") {
   require('dotenv').config();
 }
 
+process.env.NODE_ENV = 'production';
+
 const express = require('express');
 const path = require('path'); // we have access to path through node and need this line to set an absolute path for some of our folders like views
 const mongoose = require('mongoose')
@@ -51,7 +53,22 @@ app.use(mongoSanitize({
 
 const secret = process.env.SECRET || 'squirel';
 
+
+const store = MongoDbStore.create({
+  mongoUrl: dbUrl,
+  touchAfter: 24 * 60 * 60,
+  crypto: {
+      secret
+  }
+});
+
+store.on("error", function (e) {
+  console.log('session store error', e)
+});
+
+
 const sessionConfig = {
+  store,
   name: 'session',
   secret,
   resave: false,
@@ -63,14 +80,6 @@ const sessionConfig = {
     maxAge: 1000 *60 *60 *24 *7
   }
 }
-
-const store = MongoDbStore.create({
-  mongoUrl: dbUrl,
-  touchAfter: 24 * 60 * 60,
-  crypto: {
-      secret
-  }
-});
 
 app.use(session(sessionConfig));
 app.use(flash());
