@@ -46,7 +46,7 @@
     </div>
   </div>
   <div class="col-6">
-    <div id='map' style='width: 400px; height: 300px;'></div>
+    <div id='map'></div>
     <% if(currentUser) { %>
     <h2>Leave a Review</h2>
     <form action="/campgrounds/<%=campground._id%>/reviews" class="mb-3 validated-form" method="POST" novalidate> 
@@ -95,6 +95,6 @@
 
 <script>
   const mapboxToken = '<%-process.env.MAPBOX_TOKEN%>';
-  const campground = <%-JSON.stringify(campground) %>;
+  const campground = <%-JSON.stringify(campground)%>;
 </script>
 <script src="/javascript/showPageMap.js"></script>

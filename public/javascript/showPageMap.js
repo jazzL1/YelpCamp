@@ -1,4 +1,3 @@
-
 mapboxgl.accessToken = mapboxToken;
   const map = new mapboxgl.Map({
   container: 'map', // container ID
@@ -6,6 +5,8 @@ mapboxgl.accessToken = mapboxToken;
   center: campground.geometry.coordinates, // starting position [lng, lat]
   zoom: 11, // starting zoom
   });
+
+  map.addControl(new mapboxgl.NavigationControl());
 
 const marker1 = new mapboxgl.Marker()
 .setLngLat(campground.geometry.coordinates)
